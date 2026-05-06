@@ -1,6 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
-  <title id="title">ÅWJŠáü«ü</title>
-  <desc id="desc">ÅLWJŠ’hYÎüÈhÔón¢¤³ó</desc>
+  <title id="title">Travel Shiori Maker</title>
+  <desc id="desc">Notebook and map pin app icon</desc>
   <rect width="512" height="512" rx="112" fill="#2f6f73"/>
   <circle cx="394" cy="114" r="76" fill="#e88d55" opacity=".95"/>
   <path fill="#fffdf8" d="M132 94h224c24 0 44 20 44 44v286c0 12-10 22-22 22H132c-24 0-44-20-44-44V138c0-24 20-44 44-44Z"/>
