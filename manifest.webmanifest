@@ -2,7 +2,7 @@
   "name": "旅しおりメーカー MVP",
   "short_name": "旅しおり",
   "description": "旅行予定を入力して、印刷・共有しやすい旅のしおりを作れる静的HTMLアプリです。",
-  "start_url": "./index.html",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f6f4ef",
