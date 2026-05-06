@@ -1,0 +1,1963 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>旅しおりメーカー</title>
+  <style>
+    :root {
+      --bg: #f6f4ef;
+      --paper: #fffdf8;
+      --ink: #27313a;
+      --muted: #687381;
+      --line: #e5dfd3;
+      --main: #2f6f73;
+      --main-2: #e8f4f2;
+      --accent: #e88d55;
+      --accent-2: #fff1e8;
+      --danger: #bd3d3a;
+      --shadow: 0 12px 32px rgba(39, 49, 58, 0.10);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 10% 0%, rgba(232,141,85,0.20), transparent 32%),
+        radial-gradient(circle at 90% 0%, rgba(47,111,115,0.18), transparent 34%),
+        var(--bg);
+      color: var(--ink);
+      line-height: 1.65;
+    }
+
+    button, input, textarea, select {
+      font: inherit;
+    }
+
+    a { color: var(--main); }
+
+    .app-header {
+      max-width: 1480px;
+      margin: 0 auto;
+      padding: 34px 20px 18px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px;
+      align-items: end;
+    }
+
+    .app-title {
+      margin: 0;
+      font-size: clamp(26px, 4vw, 42px);
+      letter-spacing: 0.02em;
+      line-height: 1.15;
+    }
+
+    .app-subtitle {
+      margin: 10px 0 0;
+      color: var(--muted);
+      max-width: 720px;
+    }
+
+    .header-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .mobile-shiori-top,
+    .mobile-shiori-bottom,
+    .view-toolbar {
+      display: none;
+    }
+
+    .view-toolbar {
+      position: fixed;
+      top: 14px;
+      right: 14px;
+      z-index: 1000;
+      gap: 8px;
+      padding: 8px;
+      background: rgba(255, 253, 248, 0.92);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+
+    body.shiori-only {
+      background: #fff;
+    }
+
+    body.shiori-only .app-header,
+    body.shiori-only .panel,
+    body.shiori-only .trip-sidebar,
+    body.shiori-only .mobile-shiori-top,
+    body.shiori-only .mobile-shiori-bottom {
+      display: none !important;
+    }
+
+    body.shiori-only .layout {
+      display: block;
+      max-width: 980px;
+      padding: 22px 20px 52px;
+    }
+
+    body.shiori-only .preview {
+      box-shadow: none;
+      border-radius: 0;
+    }
+
+    body.shiori-only .view-toolbar {
+      display: flex;
+    }
+
+
+    .trip-sidebar {
+      background: rgba(255,253,248,0.94);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      position: sticky;
+      top: 14px;
+      max-height: calc(100vh - 28px);
+      overflow: auto;
+    }
+
+    .trip-sidebar-inner {
+      padding: 16px;
+    }
+
+    .trip-sidebar-title {
+      margin: 0 0 6px;
+      font-size: 18px;
+      line-height: 1.3;
+    }
+
+    .trip-sidebar-actions {
+      display: grid;
+      gap: 8px;
+      margin: 14px 0;
+    }
+
+    .trip-sidebar-actions .btn {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .saved-trip-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .saved-trip-card {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 16px;
+      padding: 12px;
+      text-align: left;
+      transition: border .15s, box-shadow .15s, transform .15s;
+    }
+
+    .saved-trip-card.active {
+      border-color: rgba(47,111,115,.55);
+      box-shadow: 0 0 0 4px rgba(47,111,115,.10);
+      background: var(--main-2);
+    }
+
+    .saved-trip-title {
+      display: block;
+      font-weight: 900;
+      line-height: 1.35;
+      margin-bottom: 4px;
+      color: var(--ink);
+      font-size: 15px;
+    }
+
+    .saved-trip-meta {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .saved-trip-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    .layout {
+      max-width: 1480px;
+      margin: 0 auto;
+      padding: 10px 20px 50px;
+      display: grid;
+      grid-template-columns: minmax(240px, 300px) minmax(320px, 430px) minmax(520px, 1fr);
+      gap: 20px;
+      align-items: start;
+    }
+
+    .panel, .preview {
+      background: rgba(255,253,248,0.92);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .panel {
+      position: sticky;
+      top: 14px;
+      max-height: calc(100vh - 28px);
+      overflow: auto;
+    }
+
+    .section {
+      padding: 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .section:last-child { border-bottom: 0; }
+
+    h2, h3 {
+      line-height: 1.3;
+      margin: 0 0 12px;
+    }
+
+    h2 { font-size: 18px; }
+    h3 { font-size: 16px; }
+
+    .hint {
+      margin: 4px 0 12px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .field { margin-bottom: 12px; }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 5px;
+      color: #34424d;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      border: 1px solid #d9d3c7;
+      background: #fff;
+      color: var(--ink);
+      border-radius: 12px;
+      padding: 10px 12px;
+      outline: none;
+      transition: border .15s, box-shadow .15s;
+    }
+
+    textarea { min-height: 82px; resize: vertical; }
+
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--main);
+      box-shadow: 0 0 0 4px rgba(47,111,115,0.13);
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 999px;
+      padding: 10px 14px;
+      cursor: pointer;
+      color: #fff;
+      background: var(--main);
+      font-weight: 700;
+      box-shadow: 0 4px 12px rgba(47,111,115,0.18);
+    }
+
+    .btn:hover { filter: brightness(0.98); transform: translateY(-1px); }
+
+    .btn.secondary {
+      color: var(--ink);
+      background: #fff;
+      border: 1px solid var(--line);
+      box-shadow: none;
+    }
+
+    .btn.accent { background: var(--accent); }
+
+    .btn.danger {
+      background: #fff;
+      color: var(--danger);
+      border: 1px solid rgba(189,61,58,0.22);
+      box-shadow: none;
+    }
+
+    .btn.small {
+      padding: 6px 10px;
+      font-size: 13px;
+    }
+
+    .item-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .mini-card {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 14px;
+      padding: 12px;
+    }
+
+    .mini-card-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+
+    .mini-card-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .plan-card {
+      transition: transform .16s, box-shadow .16s, opacity .16s, border-color .16s;
+    }
+
+    .plan-card.dragging {
+      opacity: .58;
+      border-color: var(--main);
+      box-shadow: 0 12px 24px rgba(47,111,115,0.20);
+    }
+
+    .drag-handle {
+      width: 30px;
+      height: 30px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: #faf8f2;
+      color: var(--muted);
+      cursor: grab;
+      user-select: none;
+      flex: 0 0 auto;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .drag-handle:active { cursor: grabbing; }
+
+    .drag-hint {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 3px 9px;
+      background: var(--main-2);
+      color: var(--main);
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    .preview {
+      overflow: hidden;
+    }
+
+    .cover-upload-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .cover-image-hint {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      word-break: break-all;
+    }
+
+    .shiori-cover {
+      --cover-bg:
+        linear-gradient(135deg, rgba(47,111,115,0.94), rgba(36,83,90,0.92)),
+        linear-gradient(45deg, transparent, rgba(255,255,255,.18));
+      padding: 30px;
+      background-image: var(--cover-bg);
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      color: #fff;
+      position: relative;
+    }
+
+    .shiori-cover::after {
+      content: "";
+      position: absolute;
+      right: -50px;
+      bottom: -80px;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.12);
+    }
+
+    .cover-label {
+      display: inline-block;
+      border: 1px solid rgba(255,255,255,0.38);
+      border-radius: 999px;
+      padding: 4px 11px;
+      font-size: 12px;
+      letter-spacing: .08em;
+      margin-bottom: 14px;
+    }
+
+    .shiori-title {
+      margin: 0;
+      font-size: clamp(30px, 5vw, 52px);
+      line-height: 1.15;
+      max-width: 760px;
+    }
+
+    .shiori-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+      color: rgba(255,255,255,0.88);
+    }
+
+    .meta-chip {
+      background: rgba(255,255,255,0.13);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 999px;
+      padding: 6px 11px;
+    }
+
+    .preview-body {
+      padding: 22px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .summary-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+    }
+
+    .summary-card strong {
+      display: block;
+      font-size: 24px;
+      line-height: 1.2;
+    }
+
+    .summary-card span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .day-block {
+      margin: 20px 0 26px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      overflow: hidden;
+    }
+
+    .day-header {
+      background: var(--accent-2);
+      border-bottom: 1px solid var(--line);
+      padding: 14px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .day-header h3 { margin: 0; }
+
+    .timeline {
+      padding: 6px 14px 14px;
+    }
+
+    .timeline-item {
+      display: grid;
+      grid-template-columns: 78px 1fr;
+      gap: 12px;
+      padding: 14px 0;
+      border-bottom: 1px dashed #e5dfd3;
+    }
+
+    .timeline-item:last-child { border-bottom: 0; }
+
+    .time {
+      font-weight: 900;
+      color: var(--main);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .spot-title {
+      font-weight: 900;
+      font-size: 17px;
+      margin-bottom: 3px;
+    }
+
+    .spot-detail {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .note-box {
+      margin-top: 8px;
+      padding: 9px 10px;
+      background: #faf8f2;
+      border-radius: 12px;
+      color: #4b5661;
+      white-space: pre-wrap;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .box {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .table-wrap { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th, td {
+      padding: 8px 7px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th { color: var(--muted); font-size: 12px; }
+
+    .check-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .check-item {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      background: #faf8f2;
+      border-radius: 12px;
+      padding: 8px 10px;
+    }
+
+    .check-item input {
+      width: auto;
+      margin-top: 5px;
+    }
+
+    .markdown-output {
+      min-height: 220px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13px;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(39,49,58,.94);
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 999px;
+      opacity: 0;
+      pointer-events: none;
+      transition: .2s;
+      z-index: 999;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    @media (max-width: 1200px) {
+      .layout { grid-template-columns: minmax(220px, 280px) 1fr; }
+      .preview { grid-column: 1 / -1; }
+    }
+
+    @media (max-width: 960px) {
+      body { padding-bottom: 84px; }
+      .layout { grid-template-columns: 1fr; }
+      .panel, .trip-sidebar { position: static; max-height: none; }
+      .summary-grid { grid-template-columns: repeat(2, 1fr); }
+      .two-col { grid-template-columns: 1fr; }
+      .app-header { grid-template-columns: 1fr; padding-top: 22px; }
+      .header-actions { justify-content: flex-start; }
+      .desktop-shiori-btn { display: none; }
+      .mobile-shiori-top {
+        display: block;
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 0 20px 8px;
+      }
+      .mobile-shiori-top .btn,
+      .mobile-shiori-bottom .btn { width: 100%; }
+      .mobile-shiori-bottom {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: block;
+        z-index: 998;
+        padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+        background: rgba(246, 244, 239, 0.92);
+        border-top: 1px solid var(--line);
+        box-shadow: 0 -12px 26px rgba(39, 49, 58, 0.12);
+        backdrop-filter: blur(10px);
+      }
+      body.shiori-only { padding-bottom: 0; }
+    }
+
+    @media (max-width: 560px) {
+      .grid-2 { grid-template-columns: 1fr; }
+      .summary-grid { grid-template-columns: 1fr; }
+      .timeline-item { grid-template-columns: 62px 1fr; }
+      .app-header, .layout { padding-left: 14px; padding-right: 14px; }
+      .shiori-cover, .preview-body { padding: 20px; }
+    }
+
+    @page {
+      size: A4;
+      margin: 10mm;
+    }
+
+    @media print {
+      html, body {
+        width: auto;
+        margin: 0;
+        background: #fff !important;
+        color: #27313a !important;
+      }
+
+      *, *::before, *::after {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+      }
+
+      .app-header,
+      .panel,
+      .toast,
+      .mobile-shiori-top,
+      .mobile-shiori-bottom,
+      .view-toolbar,
+      .trip-sidebar {
+        display: none !important;
+      }
+
+      .layout {
+        display: block !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+
+      .preview {
+        overflow: visible !important;
+        background: #fffdf8 !important;
+        border: 1px solid #e5dfd3 !important;
+        border-radius: 16px !important;
+        box-shadow: none !important;
+      }
+
+      .shiori-cover {
+        padding: 24px 26px !important;
+        background-image: var(--cover-bg) !important;
+        background-size: cover !important;
+        background-position: center !important;
+        background-repeat: no-repeat !important;
+        color: #fff !important;
+        break-after: avoid;
+        page-break-after: avoid;
+      }
+
+      .shiori-cover::after {
+        background: rgba(255,255,255,0.12) !important;
+      }
+
+      .cover-label {
+        color: #fff !important;
+        border-color: rgba(255,255,255,0.38) !important;
+      }
+
+      .shiori-title,
+      .shiori-meta,
+      .meta-chip {
+        color: #fff !important;
+      }
+
+      .meta-chip {
+        background: rgba(255,255,255,0.13) !important;
+        border-color: rgba(255,255,255,0.18) !important;
+      }
+
+      .preview-body {
+        padding: 18px !important;
+        background: #fffdf8 !important;
+      }
+
+      .summary-grid {
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 10px !important;
+      }
+
+      .summary-card,
+      .day-block,
+      .box {
+        background: #fff !important;
+        border: 1px solid #e5dfd3 !important;
+        box-shadow: none !important;
+      }
+
+      .summary-card strong {
+        color: #27313a !important;
+      }
+
+      .summary-card span,
+      th,
+      .spot-detail {
+        color: #687381 !important;
+      }
+
+      .day-header {
+        background: #fff1e8 !important;
+        border-bottom: 1px solid #e5dfd3 !important;
+      }
+
+      .timeline {
+        padding-bottom: 10px !important;
+      }
+
+      .timeline-item {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        border-bottom: 1px dashed #e5dfd3 !important;
+      }
+
+      .time {
+        color: #2f6f73 !important;
+      }
+
+      .pill {
+        background: #e8f4f2 !important;
+        color: #2f6f73 !important;
+      }
+
+      .note-box,
+      .check-item {
+        background: #faf8f2 !important;
+      }
+
+      .two-col {
+        grid-template-columns: 1.1fr .9fr !important;
+      }
+
+      .day-block,
+      .box,
+      .summary-card {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      table, tr, td, th {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      a {
+        color: #2f6f73 !important;
+        text-decoration: none;
+      }
+
+      a::after { content: ""; }
+    }
+  </style>
+</head>
+<body class="edit-mode">
+  <div class="mobile-shiori-top">
+    <button class="btn accent" id="showShioriTopBtn">しおりを表示</button>
+  </div>
+
+  <header class="app-header">
+    <div>
+      <h1 class="app-title">旅しおりメーカー</h1>
+      <p class="app-subtitle">旅行予定を入力すると、印刷・共有しやすい「しおり」を自動で整えます。APIなし、データはブラウザ内保存です。</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn secondary" id="saveTripNowBtn" type="button">現在のしおりを保存</button>
+      <button class="btn secondary" id="loadSampleBtn">サンプル読込</button>
+      <button class="btn secondary" id="importBtn">JSON読込</button>
+      <input class="file-input" id="importFile" type="file" accept="application/json,.json" />
+      <button class="btn secondary" id="exportJsonBtn">JSON保存</button>
+      <button class="btn secondary desktop-shiori-btn" id="showShioriBtn">しおりのみ表示</button>
+      <button class="btn accent" id="printBtn">印刷 / PDF保存</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <aside class="trip-sidebar" aria-label="しおり一覧">
+      <div class="trip-sidebar-inner">
+        <h2 class="trip-sidebar-title">しおり一覧</h2>
+        <p class="hint">保存済みのしおりを選ぶと、右側の編集欄に読み込まれます。</p>
+        <div class="trip-sidebar-actions">
+          <button class="btn" id="newTripBtn" type="button">新規しおりを作成</button>
+          <button class="btn secondary" id="loadSampleFromListBtn" type="button">サンプルから作成</button>
+          <button class="btn secondary" id="importFromListBtn" type="button">JSON読込</button>
+        </div>
+        <div id="savedTripList" class="saved-trip-list"></div>
+      </div>
+    </aside>
+    <aside class="panel" aria-label="入力パネル">
+      <section class="section">
+        <h2>基本情報</h2>
+        <div class="field">
+          <label for="tripTitle">旅行タイトル</label>
+          <input id="tripTitle" placeholder="例：日光・温泉 2泊3日旅" />
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label for="startDate">出発日</label>
+            <input id="startDate" type="date" />
+          </div>
+          <div class="field">
+            <label for="endDate">帰着日</label>
+            <input id="endDate" type="date" />
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label for="members">人数</label>
+            <input id="members" type="number" min="1" step="1" placeholder="例：2" />
+          </div>
+          <div class="field">
+            <label for="basePlace">出発地</label>
+            <input id="basePlace" placeholder="例：大宮駅" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="tripMemo">旅のメモ</label>
+          <textarea id="tripMemo" placeholder="目的、注意事項、予約番号、同行者への連絡事項など"></textarea>
+        </div>
+        <div class="field">
+          <label>タイトル背景画像</label>
+          <div class="cover-upload-row">
+            <button class="btn secondary" id="chooseCoverImageBtn" type="button">画像を選択</button>
+            <button class="btn secondary" id="clearCoverImageBtn" type="button">画像を解除</button>
+            <input class="file-input" id="coverImageFile" type="file" accept="image/*" />
+          </div>
+          <p class="cover-image-hint" id="coverImageHint">未設定（標準デザイン）</p>
+          <p class="hint">おすすめは横長画像です。ブラウザ内に保存され、しおりのカバーや印刷/PDFにも反映されます。</p>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>予定を追加</h2>
+        <p class="hint">日付・時刻・場所・費用を入れると、日別タイムラインと予算表に反映されます。</p>
+        <div class="grid-2">
+          <div class="field">
+            <label for="planDate">日付</label>
+            <input id="planDate" type="date" />
+          </div>
+          <div class="field">
+            <label for="planTime">時刻</label>
+            <input id="planTime" type="time" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="planTitle">予定名</label>
+          <input id="planTitle" placeholder="例：宇佐神宮を参拝" />
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label for="planCategory">カテゴリ</label>
+            <select id="planCategory">
+              <option>観光</option>
+              <option>移動</option>
+              <option>食事</option>
+              <option>宿泊</option>
+              <option>休憩</option>
+              <option>買い物</option>
+              <option>その他</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="planCost">費用</label>
+            <input id="planCost" type="number" min="0" step="1" placeholder="例：1200" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="planTransport">移動・交通メモ</label>
+          <input id="planTransport" placeholder="例：レンタカーで約40分 / 徒歩10分" />
+        </div>
+        <div class="field">
+          <label for="planMapUrl">地図・予約URL</label>
+          <input id="planMapUrl" type="url" placeholder="https://maps.google.com/..." />
+        </div>
+        <div class="field">
+          <label for="planNote">メモ</label>
+          <textarea id="planNote" placeholder="営業時間、予約番号、注意点など"></textarea>
+        </div>
+        <div class="btn-row">
+          <button class="btn" id="addPlanBtn">予定を追加</button>
+          <button class="btn secondary" id="clearPlanFormBtn">入力クリア</button>
+        </div>
+        <p class="drag-hint">追加した予定カードは、左の「≡」をつかんで上下に並べ替えできます。</p>
+        <div id="planList" class="item-list" style="margin-top: 10px;"></div>
+      </section>
+
+      <section class="section">
+        <h2>持ち物チェックリスト</h2>
+        <div class="field">
+          <label for="packingInput">持ち物</label>
+          <input id="packingInput" placeholder="例：充電器" />
+        </div>
+        <div class="btn-row">
+          <button class="btn" id="addPackingBtn">追加</button>
+          <button class="btn secondary" id="addPackingTemplateBtn">基本セット追加</button>
+        </div>
+        <div id="packingEditor" class="item-list" style="margin-top: 14px;"></div>
+      </section>
+
+      <section class="section">
+        <h2>共有用Markdown</h2>
+        <p class="hint">LINEやNotion、Googleドキュメントに貼り付けやすい形式です。</p>
+        <textarea id="markdownOutput" class="markdown-output" readonly></textarea>
+        <div class="btn-row" style="margin-top: 10px;">
+          <button class="btn secondary" id="copyMarkdownBtn">Markdownコピー</button>
+          <button class="btn secondary" id="downloadMarkdownBtn">Markdown保存</button>
+          <button class="btn danger" id="resetBtn">全データ削除</button>
+        </div>
+      </section>
+    </aside>
+
+    <section class="preview" aria-label="しおりプレビュー">
+      <div class="shiori-cover" id="shioriCover">
+        <span class="cover-label">TRAVEL SHIORI</span>
+        <h2 class="shiori-title" id="previewTitle">旅のタイトルを入力してください</h2>
+        <div class="shiori-meta" id="previewMeta"></div>
+      </div>
+      <div class="preview-body">
+        <div class="summary-grid">
+          <div class="summary-card"><span>予定数</span><strong id="summaryPlans">0</strong></div>
+          <div class="summary-card"><span>旅行日数</span><strong id="summaryDays">0</strong></div>
+          <div class="summary-card"><span>概算費用</span><strong id="summaryCost">¥0</strong></div>
+          <div class="summary-card"><span>持ち物</span><strong id="summaryPacking">0</strong></div>
+        </div>
+
+        <div class="box" id="memoPreviewBox" style="display:none; margin-bottom: 18px;">
+          <h3>旅のメモ</h3>
+          <div id="memoPreview"></div>
+        </div>
+
+        <div id="timelinePreview"></div>
+
+        <div class="two-col">
+          <div class="box">
+            <h3>予算メモ</h3>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>カテゴリ</th><th>件数</th><th>金額</th></tr></thead>
+                <tbody id="budgetTable"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="box">
+            <h3>持ち物</h3>
+            <div id="packingPreview" class="check-list"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="mobile-shiori-bottom">
+    <button class="btn accent" id="showShioriBottomBtn">しおりを表示</button>
+  </div>
+
+  <div class="view-toolbar" aria-label="しおり表示メニュー">
+    <button class="btn secondary small" id="backToEditBtn">編集に戻る</button>
+    <button class="btn accent small" id="printFromViewBtn">印刷 / PDF保存</button>
+  </div>
+
+  <div class="toast" id="toast">保存しました</div>
+
+  <script>
+    const STORAGE_KEY = 'travel-shiori-maker-mvp-v2';
+    const TRIPS_KEY = 'travel-shiori-maker-mvp-trip-list-v1';
+    const yen = new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY', maximumFractionDigits: 0 });
+    const weekday = ['日', '月', '火', '水', '木', '金', '土'];
+
+    const state = {
+      tripId: '',
+      tripTitle: '',
+      startDate: '',
+      endDate: '',
+      members: '',
+      basePlace: '',
+      tripMemo: '',
+      coverImage: '',
+      coverImageName: '',
+      plans: [],
+      packing: []
+    };
+
+    const $ = (id) => document.getElementById(id);
+
+    const fields = ['tripTitle', 'startDate', 'endDate', 'members', 'basePlace', 'tripMemo'];
+
+    function uid() {
+      return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '';
+      const d = new Date(`${dateStr}T00:00:00`);
+      if (Number.isNaN(d.getTime())) return dateStr;
+      return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}（${weekday[d.getDay()]}）`;
+    }
+
+    function getTripDays() {
+      if (!state.startDate || !state.endDate) return [];
+      const start = new Date(`${state.startDate}T00:00:00`);
+      const end = new Date(`${state.endDate}T00:00:00`);
+      if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end < start) return [];
+      const days = [];
+      const cur = new Date(start);
+      while (cur <= end) {
+        const y = cur.getFullYear();
+        const m = String(cur.getMonth() + 1).padStart(2, '0');
+        const d = String(cur.getDate()).padStart(2, '0');
+        days.push(`${y}-${m}-${d}`);
+        cur.setDate(cur.getDate() + 1);
+      }
+      return days;
+    }
+
+    function emptyTripState(newId = uid()) {
+      return {
+        tripId: newId,
+        tripTitle: '',
+        startDate: '',
+        endDate: '',
+        members: '',
+        basePlace: '',
+        tripMemo: '',
+        coverImage: '',
+        coverImageName: '',
+        plans: [],
+        packing: []
+      };
+    }
+
+    function normalizeTripData(data) {
+      const normalized = Object.assign(emptyTripState(data?.tripId || uid()), data || {});
+      normalized.tripId = normalized.tripId || uid();
+      normalized.plans = Array.isArray(normalized.plans) ? normalized.plans.map(p => ({ id: p.id || uid(), ...p })) : [];
+      normalized.packing = Array.isArray(normalized.packing)
+        ? normalized.packing.map(i => typeof i === 'string' ? ({ id: uid(), name: i, checked: false }) : ({ id: i.id || uid(), name: i.name || String(i), checked: !!i.checked }))
+        : [];
+      return normalized;
+    }
+
+    function hasTripContent(data = state) {
+      return Boolean(
+        data.tripTitle || data.startDate || data.endDate || data.members || data.basePlace ||
+        data.tripMemo || data.coverImage || (data.plans && data.plans.length) || (data.packing && data.packing.length)
+      );
+    }
+
+    function readSavedTrips() {
+      try {
+        const raw = localStorage.getItem(TRIPS_KEY);
+        const parsed = raw ? JSON.parse(raw) : [];
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (_) {
+        return [];
+      }
+    }
+
+    function writeSavedTrips(list) {
+      localStorage.setItem(TRIPS_KEY, JSON.stringify(list));
+    }
+
+    function tripDisplayTitle(data) {
+      return data.tripTitle?.trim() || '無題のしおり';
+    }
+
+    function tripDateLabel(data) {
+      if (data.startDate && data.endDate) return `${formatDate(data.startDate)}〜${formatDate(data.endDate)}`;
+      if (data.startDate) return `${formatDate(data.startDate)}〜`;
+      return '日程未設定';
+    }
+
+    function upsertCurrentTrip() {
+      if (!state.tripId) state.tripId = uid();
+      if (!hasTripContent()) return;
+      const list = readSavedTrips().filter(item => item.id !== state.tripId);
+      const saved = {
+        id: state.tripId,
+        title: tripDisplayTitle(state),
+        startDate: state.startDate || '',
+        endDate: state.endDate || '',
+        updatedAt: new Date().toISOString(),
+        plansCount: state.plans.length,
+        data: JSON.parse(JSON.stringify(state))
+      };
+      writeSavedTrips([saved, ...list].sort((a, b) => String(b.updatedAt || '').localeCompare(String(a.updatedAt || ''))));
+    }
+
+    function save() {
+      if (!state.tripId) state.tripId = uid();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      upsertCurrentTrip();
+    }
+
+    function load() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      try {
+        if (raw) {
+          Object.assign(state, normalizeTripData(JSON.parse(raw)));
+          return;
+        }
+        const latest = readSavedTrips()[0];
+        if (latest?.data) {
+          Object.assign(state, normalizeTripData(latest.data));
+          return;
+        }
+        Object.assign(state, emptyTripState());
+      } catch (e) {
+        console.warn('保存データを読み込めませんでした', e);
+        Object.assign(state, emptyTripState());
+      }
+    }
+
+    function syncFieldsFromState() {
+      fields.forEach((id) => $(id).value = state[id] || '');
+      if (!state.plans.length && state.startDate) $('planDate').value = state.startDate;
+      updateCoverImageUi();
+    }
+
+    function updateStateFromFields() {
+      fields.forEach((id) => state[id] = $(id).value);
+    }
+
+    function defaultCoverBackground() {
+      return 'linear-gradient(135deg, rgba(47,111,115,0.94), rgba(36,83,90,0.92)), linear-gradient(45deg, transparent, rgba(255,255,255,.18))';
+    }
+
+    function customCoverBackground(dataUrl) {
+      return `linear-gradient(135deg, rgba(20,34,40,0.48), rgba(20,34,40,0.34)), url("${dataUrl}")`;
+    }
+
+    function updateCoverImageUi() {
+      const hint = $('coverImageHint');
+      if (!hint) return;
+      hint.textContent = state.coverImage
+        ? `設定中：${state.coverImageName || '選択した画像'}`
+        : '未設定（標準デザイン）';
+    }
+
+    function applyCoverBackground() {
+      const cover = $('shioriCover');
+      if (!cover) return;
+      const bg = state.coverImage ? customCoverBackground(state.coverImage) : defaultCoverBackground();
+      cover.style.setProperty('--cover-bg', bg);
+    }
+
+    function toast(message) {
+      const el = $('toast');
+      el.textContent = message;
+      el.classList.add('show');
+      clearTimeout(toast._timer);
+      toast._timer = setTimeout(() => el.classList.remove('show'), 1700);
+    }
+
+    function nextPlanOrder() {
+      const orders = state.plans.map(p => Number(p.order)).filter(Number.isFinite);
+      return orders.length ? Math.max(...orders) + 1 : 0;
+    }
+
+    function fallbackPlanCompare(a, b) {
+      const ad = a.date || '9999-99-99';
+      const bd = b.date || '9999-99-99';
+      if (ad !== bd) return ad.localeCompare(bd);
+      const at = a.time || '99:99';
+      const bt = b.time || '99:99';
+      if (at !== bt) return at.localeCompare(bt);
+      return String(a.title || '').localeCompare(String(b.title || ''), 'ja');
+    }
+
+    function ensurePlanOrders() {
+      const missing = state.plans
+        .filter(p => !Number.isFinite(Number(p.order)))
+        .sort(fallbackPlanCompare);
+      missing.forEach(p => { p.order = nextPlanOrder(); });
+    }
+
+    function sortPlans(plans) {
+      return [...plans].sort((a, b) => {
+        const ao = Number(a.order);
+        const bo = Number(b.order);
+        const hasA = Number.isFinite(ao);
+        const hasB = Number.isFinite(bo);
+        if (hasA && hasB && ao !== bo) return ao - bo;
+        if (hasA && !hasB) return -1;
+        if (!hasA && hasB) return 1;
+        return fallbackPlanCompare(a, b);
+      });
+    }
+
+    function applyPlanOrder(orderedIds) {
+      const byId = new Map(state.plans.map(p => [p.id, p]));
+      const ordered = orderedIds.map(id => byId.get(id)).filter(Boolean);
+      const leftovers = state.plans.filter(p => !orderedIds.includes(p.id));
+      state.plans = [...ordered, ...leftovers];
+      state.plans.forEach((p, index) => { p.order = index; });
+    }
+
+    function addPlan() {
+      const title = $('planTitle').value.trim();
+      if (!title) {
+        toast('予定名を入力してください');
+        $('planTitle').focus();
+        return;
+      }
+      state.plans.push({
+        id: uid(),
+        date: $('planDate').value,
+        time: $('planTime').value,
+        title,
+        category: $('planCategory').value,
+        order: nextPlanOrder(),
+        cost: Number($('planCost').value || 0),
+        transport: $('planTransport').value.trim(),
+        mapUrl: $('planMapUrl').value.trim(),
+        note: $('planNote').value.trim()
+      });
+      clearPlanForm(false);
+      renderAll(true);
+      toast('予定を追加しました');
+    }
+
+    function clearPlanForm(keepDate = true) {
+      const currentDate = $('planDate').value || state.startDate;
+      $('planDate').value = keepDate ? currentDate : (state.startDate || '');
+      $('planTime').value = '';
+      $('planTitle').value = '';
+      $('planCategory').value = '観光';
+      $('planCost').value = '';
+      $('planTransport').value = '';
+      $('planMapUrl').value = '';
+      $('planNote').value = '';
+    }
+
+    function deletePlan(id) {
+      state.plans = state.plans.filter(p => p.id !== id);
+      renderAll(true);
+      toast('予定を削除しました');
+    }
+
+    function editPlan(id) {
+      const p = state.plans.find(x => x.id === id);
+      if (!p) return;
+      $('planDate').value = p.date || '';
+      $('planTime').value = p.time || '';
+      $('planTitle').value = p.title || '';
+      $('planCategory').value = p.category || '観光';
+      $('planCost').value = p.cost || '';
+      $('planTransport').value = p.transport || '';
+      $('planMapUrl').value = p.mapUrl || '';
+      $('planNote').value = p.note || '';
+      state.plans = state.plans.filter(x => x.id !== id);
+      renderAll(true);
+      $('planTitle').focus();
+      toast('編集用に戻しました');
+    }
+
+    function addPackingItem(name) {
+      const text = String(name || $('packingInput').value).trim();
+      if (!text) return;
+      if (state.packing.some(item => item.name === text)) {
+        $('packingInput').value = '';
+        toast('同じ持ち物があります');
+        return;
+      }
+      state.packing.push({ id: uid(), name: text, checked: false });
+      $('packingInput').value = '';
+      renderAll(true);
+    }
+
+    function addPackingTemplate() {
+      ['財布', 'スマートフォン', '充電器', 'モバイルバッテリー', '保険証', '常備薬', '着替え', '雨具', 'ハンカチ・ティッシュ', '予約確認メール'].forEach(addPackingItem);
+      toast('基本セットを追加しました');
+    }
+
+    function deletePacking(id) {
+      state.packing = state.packing.filter(item => item.id !== id);
+      renderAll(true);
+    }
+
+    function togglePacking(id, checked) {
+      const item = state.packing.find(x => x.id === id);
+      if (item) item.checked = checked;
+      renderAll(true);
+    }
+
+    function renderPlanList() {
+      const container = $('planList');
+      const plans = sortPlans(state.plans);
+      if (!plans.length) {
+        container.innerHTML = '<p class="hint">まだ予定がありません。</p>';
+        return;
+      }
+      container.innerHTML = plans.map(p => `
+        <div class="mini-card plan-card" data-plan-card="${p.id}">
+          <div class="mini-card-head">
+            <div class="mini-card-left">
+              <span class="drag-handle" draggable="true" data-plan-drag-handle="${p.id}" title="ドラッグして並べ替え" aria-label="${escapeHtml(p.title)}を並べ替え">≡</span>
+              <span class="pill">${escapeHtml(p.category || '予定')}</span>
+            </div>
+            <div class="btn-row">
+              <button class="btn small secondary" data-edit-plan="${p.id}">編集</button>
+              <button class="btn small danger" data-delete-plan="${p.id}">削除</button>
+            </div>
+          </div>
+          <strong>${escapeHtml(p.title)}</strong>
+          <div class="hint">${escapeHtml(formatDate(p.date) || '日付未設定')} ${escapeHtml(p.time || '')} ${p.cost ? ` / ${yen.format(p.cost)}` : ''}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderPackingEditor() {
+      const container = $('packingEditor');
+      if (!state.packing.length) {
+        container.innerHTML = '<p class="hint">まだ持ち物がありません。</p>';
+        return;
+      }
+      container.innerHTML = state.packing.map(item => `
+        <div class="mini-card">
+          <div class="mini-card-head">
+            <label style="display:flex; gap:8px; align-items:center; margin:0; font-weight:700;">
+              <input style="width:auto;" type="checkbox" data-toggle-packing="${item.id}" ${item.checked ? 'checked' : ''} />
+              ${escapeHtml(item.name)}
+            </label>
+            <button class="btn small danger" data-delete-packing="${item.id}">削除</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderCover() {
+      $('previewTitle').textContent = state.tripTitle || '旅のタイトルを入力してください';
+      applyCoverBackground();
+      updateCoverImageUi();
+      const dateText = state.startDate && state.endDate
+        ? `${formatDate(state.startDate)} 〜 ${formatDate(state.endDate)}`
+        : (state.startDate ? `${formatDate(state.startDate)} 〜` : '日程未設定');
+      const meta = [
+        dateText,
+        state.basePlace ? `出発地：${state.basePlace}` : '',
+        state.members ? `${state.members}人旅` : ''
+      ].filter(Boolean);
+      $('previewMeta').innerHTML = meta.map(x => `<span class="meta-chip">${escapeHtml(x)}</span>`).join('');
+    }
+
+    function renderSummary() {
+      const days = getTripDays();
+      const totalCost = state.plans.reduce((sum, p) => sum + Number(p.cost || 0), 0);
+      $('summaryPlans').textContent = state.plans.length;
+      $('summaryDays').textContent = days.length || '-';
+      $('summaryCost').textContent = yen.format(totalCost);
+      $('summaryPacking').textContent = state.packing.length;
+      const memoBox = $('memoPreviewBox');
+      if (state.tripMemo.trim()) {
+        memoBox.style.display = '';
+        $('memoPreview').innerHTML = escapeHtml(state.tripMemo).replaceAll('\n', '<br>');
+      } else {
+        memoBox.style.display = 'none';
+      }
+    }
+
+    function renderTimeline() {
+      const container = $('timelinePreview');
+      const plans = sortPlans(state.plans);
+      const dateKeys = new Set(getTripDays());
+      plans.forEach(p => { if (p.date) dateKeys.add(p.date); });
+      if (!dateKeys.size && !plans.length) {
+        container.innerHTML = `<div class="box"><h3>予定</h3><p class="hint">左側のフォームから予定を追加すると、ここに日別のしおりが表示されます。</p></div>`;
+        return;
+      }
+      const sortedDates = [...dateKeys].sort();
+      const undated = plans.filter(p => !p.date);
+      let html = sortedDates.map((date, index) => {
+        const dayPlans = plans.filter(p => p.date === date);
+        const body = dayPlans.length ? dayPlans.map(planTimelineHtml).join('') : '<div class="timeline-item"><div class="time">--:--</div><div><div class="spot-title">予定未入力</div><div class="spot-detail">この日の予定を追加してください。</div></div></div>';
+        return `
+          <article class="day-block">
+            <div class="day-header">
+              <h3>${index + 1}日目：${escapeHtml(formatDate(date))}</h3>
+              <span class="pill">${dayPlans.length}件</span>
+            </div>
+            <div class="timeline">${body}</div>
+          </article>
+        `;
+      }).join('');
+      if (undated.length) {
+        html += `
+          <article class="day-block">
+            <div class="day-header"><h3>日付未設定の予定</h3><span class="pill">${undated.length}件</span></div>
+            <div class="timeline">${undated.map(planTimelineHtml).join('')}</div>
+          </article>
+        `;
+      }
+      container.innerHTML = html;
+    }
+
+    function planTimelineHtml(p) {
+      const link = p.mapUrl ? ` <a href="${escapeHtml(p.mapUrl)}" target="_blank" rel="noopener">地図/予約</a>` : '';
+      const transport = p.transport ? `移動：${escapeHtml(p.transport)}` : '';
+      const cost = p.cost ? `費用：${escapeHtml(yen.format(p.cost))}` : '';
+      const detail = [p.category, transport, cost].filter(Boolean).join(' / ');
+      return `
+        <div class="timeline-item">
+          <div class="time">${escapeHtml(p.time || '--:--')}</div>
+          <div>
+            <div class="spot-title">${escapeHtml(p.title)}${link}</div>
+            <div class="spot-detail">${escapeHtml(detail)}</div>
+            ${p.note ? `<div class="note-box">${escapeHtml(p.note)}</div>` : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderBudget() {
+      const groups = new Map();
+      state.plans.forEach(p => {
+        const key = p.category || 'その他';
+        if (!groups.has(key)) groups.set(key, { count: 0, cost: 0 });
+        const g = groups.get(key);
+        g.count += 1;
+        g.cost += Number(p.cost || 0);
+      });
+      const total = [...groups.values()].reduce((sum, g) => sum + g.cost, 0);
+      const rows = [...groups.entries()].sort((a, b) => b[1].cost - a[1].cost).map(([cat, g]) => `
+        <tr><td>${escapeHtml(cat)}</td><td>${g.count}</td><td>${yen.format(g.cost)}</td></tr>
+      `).join('');
+      $('budgetTable').innerHTML = rows + `<tr><th>合計</th><th>${state.plans.length}</th><th>${yen.format(total)}</th></tr>`;
+    }
+
+    function renderPackingPreview() {
+      const container = $('packingPreview');
+      if (!state.packing.length) {
+        container.innerHTML = '<p class="hint">持ち物を追加してください。</p>';
+        return;
+      }
+      container.innerHTML = state.packing.map(item => `
+        <label class="check-item">
+          <input type="checkbox" data-toggle-packing="${item.id}" ${item.checked ? 'checked' : ''} />
+          <span>${escapeHtml(item.name)}</span>
+        </label>
+      `).join('');
+    }
+
+    function generateMarkdown() {
+      const lines = [];
+      lines.push(`# ${state.tripTitle || '旅のしおり'}`);
+      lines.push('');
+      if (state.startDate || state.endDate) lines.push(`- 日程：${formatDate(state.startDate) || '未設定'} 〜 ${formatDate(state.endDate) || '未設定'}`);
+      if (state.basePlace) lines.push(`- 出発地：${state.basePlace}`);
+      if (state.members) lines.push(`- 人数：${state.members}人`);
+      if (state.tripMemo) {
+        lines.push('');
+        lines.push('## 旅のメモ');
+        lines.push(state.tripMemo);
+      }
+
+      lines.push('');
+      lines.push('## スケジュール');
+      const plans = sortPlans(state.plans);
+      const dateKeys = new Set(getTripDays());
+      plans.forEach(p => { if (p.date) dateKeys.add(p.date); });
+      [...dateKeys].sort().forEach((date, index) => {
+        lines.push('');
+        lines.push(`### ${index + 1}日目：${formatDate(date)}`);
+        const dayPlans = plans.filter(p => p.date === date);
+        if (!dayPlans.length) {
+          lines.push('- 予定未入力');
+        } else {
+          dayPlans.forEach(p => {
+            const parts = [p.category, p.transport ? `移動：${p.transport}` : '', p.cost ? `費用：${yen.format(p.cost)}` : '', p.mapUrl ? `URL：${p.mapUrl}` : ''].filter(Boolean).join(' / ');
+            lines.push(`- ${p.time || '--:--'} ${p.title}${parts ? `（${parts}）` : ''}`);
+            if (p.note) lines.push(`  - メモ：${p.note.replaceAll('\n', ' / ')}`);
+          });
+        }
+      });
+      const undated = plans.filter(p => !p.date);
+      if (undated.length) {
+        lines.push('');
+        lines.push('### 日付未設定');
+        undated.forEach(p => lines.push(`- ${p.time || '--:--'} ${p.title}`));
+      }
+
+      lines.push('');
+      lines.push('## 予算');
+      const groups = new Map();
+      state.plans.forEach(p => {
+        const key = p.category || 'その他';
+        if (!groups.has(key)) groups.set(key, 0);
+        groups.set(key, groups.get(key) + Number(p.cost || 0));
+      });
+      let total = 0;
+      [...groups.entries()].forEach(([key, value]) => {
+        total += value;
+        lines.push(`- ${key}：${yen.format(value)}`);
+      });
+      lines.push(`- 合計：${yen.format(total)}`);
+
+      lines.push('');
+      lines.push('## 持ち物');
+      if (!state.packing.length) {
+        lines.push('- [ ] 未入力');
+      } else {
+        state.packing.forEach(item => lines.push(`- [${item.checked ? 'x' : ' '}] ${item.name}`));
+      }
+      return lines.join('\n');
+    }
+
+    function renderMarkdown() {
+      $('markdownOutput').value = generateMarkdown();
+    }
+
+    function renderSavedTripList() {
+      const container = $('savedTripList');
+      if (!container) return;
+      const list = readSavedTrips();
+      if (!list.length) {
+        container.innerHTML = '<p class="hint">まだ保存済みのしおりはありません。</p>';
+        return;
+      }
+      container.innerHTML = list.map(item => {
+        const data = item.data || {};
+        const active = item.id === state.tripId ? ' active' : '';
+        const updated = item.updatedAt ? new Date(item.updatedAt) : null;
+        const updatedText = updated && !Number.isNaN(updated.getTime())
+          ? `${updated.getFullYear()}/${String(updated.getMonth()+1).padStart(2,'0')}/${String(updated.getDate()).padStart(2,'0')} ${String(updated.getHours()).padStart(2,'0')}:${String(updated.getMinutes()).padStart(2,'0')}`
+          : '更新日時不明';
+        return `
+          <div class="saved-trip-card${active}" data-saved-trip-card="${escapeHtml(item.id)}">
+            <span class="saved-trip-title">${escapeHtml(item.title || tripDisplayTitle(data))}</span>
+            <span class="saved-trip-meta">${escapeHtml(tripDateLabel(data))}</span>
+            <span class="saved-trip-meta">予定 ${Number(item.plansCount || data.plans?.length || 0)}件 / 更新 ${escapeHtml(updatedText)}</span>
+            <div class="saved-trip-actions">
+              <button class="btn small secondary" data-load-trip="${escapeHtml(item.id)}">開く</button>
+              <button class="btn small danger" data-delete-trip="${escapeHtml(item.id)}">削除</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function newTrip() {
+      Object.assign(state, emptyTripState());
+      syncFieldsFromState();
+      clearPlanForm(false);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      renderAll(false);
+      toast('新しいしおりを作成しました');
+    }
+
+    function loadTripById(id) {
+      const item = readSavedTrips().find(x => x.id === id);
+      if (!item?.data) {
+        toast('しおりを読み込めませんでした');
+        return;
+      }
+      Object.assign(state, normalizeTripData(item.data));
+      state.tripId = item.id;
+      syncFieldsFromState();
+      clearPlanForm(false);
+      renderAll(true);
+      toast('しおりを開きました');
+    }
+
+    function deleteTripById(id) {
+      const item = readSavedTrips().find(x => x.id === id);
+      const title = item?.title || 'このしおり';
+      if (!confirm(`「${title}」を削除します。よろしいですか？`)) return;
+      const list = readSavedTrips().filter(x => x.id !== id);
+      writeSavedTrips(list);
+      if (state.tripId === id) {
+        if (list[0]?.data) {
+          Object.assign(state, normalizeTripData(list[0].data));
+          state.tripId = list[0].id;
+          syncFieldsFromState();
+          clearPlanForm(false);
+          renderAll(false);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        } else {
+          Object.assign(state, emptyTripState());
+          syncFieldsFromState();
+          clearPlanForm(false);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+          renderAll(false);
+        }
+      } else {
+        renderSavedTripList();
+      }
+      toast('しおりを削除しました');
+    }
+
+    function saveTripNow() {
+      renderAll(true);
+      toast('現在のしおりを保存しました');
+    }
+
+    function renderAll(shouldSave = false) {
+      updateStateFromFields();
+      ensurePlanOrders();
+      renderCover();
+      renderSummary();
+      renderPlanList();
+      renderPackingEditor();
+      renderTimeline();
+      renderBudget();
+      renderPackingPreview();
+      renderMarkdown();
+      if (shouldSave) save();
+      renderSavedTripList();
+    }
+
+    function download(filename, text, type = 'text/plain') {
+      const blob = new Blob([text], { type });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function loadSample() {
+      const today = new Date();
+      const d1 = new Date(today);
+      const d2 = new Date(today);
+      d2.setDate(d1.getDate() + 1);
+      const fmt = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      Object.assign(state, {
+        tripId: uid(),
+        tripTitle: '日光・温泉 1泊2日旅',
+        startDate: fmt(d1),
+        endDate: fmt(d2),
+        members: '2',
+        basePlace: '大宮駅',
+        tripMemo: '無理に詰め込みすぎず、昼食と休憩時間を長めに取る。拝観時間と宿のチェックイン時間を確認する。',
+        coverImage: '',
+        coverImageName: '',
+        plans: [
+          { id: uid(), date: fmt(d1), time: '08:30', title: '大宮駅 出発', category: '移動', cost: 0, transport: '電車または車', mapUrl: '', note: '集合は改札前。' },
+          { id: uid(), date: fmt(d1), time: '11:00', title: '日光東照宮 周辺散策', category: '観光', cost: 1600, transport: '徒歩', mapUrl: 'https://www.google.com/maps', note: '混雑時は先に昼食へ変更。' },
+          { id: uid(), date: fmt(d1), time: '13:00', title: '昼食', category: '食事', cost: 1800, transport: '徒歩', mapUrl: '', note: '生ものが苦手な人向けのメニューも確認。' },
+          { id: uid(), date: fmt(d1), time: '15:30', title: '宿にチェックイン', category: '宿泊', cost: 12000, transport: '車で移動', mapUrl: '', note: '予約番号を控える。' },
+          { id: uid(), date: fmt(d2), time: '09:30', title: '温泉街を散策', category: '観光', cost: 0, transport: '徒歩', mapUrl: '', note: '' },
+          { id: uid(), date: fmt(d2), time: '14:00', title: '帰路へ', category: '移動', cost: 3000, transport: '電車または車', mapUrl: '', note: 'お土産購入後に移動。' }
+        ],
+        packing: ['財布', 'スマートフォン', '充電器', '常備薬', '着替え', '雨具', '予約確認メール'].map(name => ({ id: uid(), name, checked: false }))
+      });
+      syncFieldsFromState();
+      renderAll(true);
+      toast('サンプルを読み込みました');
+    }
+
+    function exportJson() {
+      renderAll(true);
+      const name = (state.tripTitle || 'travel-shiori').replace(/[\\/:*?"<>|\s]+/g, '_');
+      download(`${name}.json`, JSON.stringify(state, null, 2), 'application/json');
+    }
+
+    function importCoverImage(file) {
+      if (!file) return;
+      if (!String(file.type || '').startsWith('image/')) {
+        toast('画像ファイルを選択してください');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        state.coverImage = String(reader.result || '');
+        state.coverImageName = file.name || 'cover-image';
+        renderAll(true);
+        toast('タイトル背景画像を設定しました');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function clearCoverImage() {
+      state.coverImage = '';
+      state.coverImageName = '';
+      renderAll(true);
+      toast('タイトル背景画像を解除しました');
+    }
+
+    function getDragAfterElement(container, y) {
+      const cards = [...container.querySelectorAll('.plan-card:not(.dragging)')];
+      return cards.reduce((closest, card) => {
+        const box = card.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        if (offset < 0 && offset > closest.offset) {
+          return { offset, element: card };
+        }
+        return closest;
+      }, { offset: Number.NEGATIVE_INFINITY, element: null }).element;
+    }
+
+    function persistCurrentPlanCardOrder() {
+      const ids = [...$('planList').querySelectorAll('[data-plan-card]')].map(el => el.getAttribute('data-plan-card'));
+      if (ids.length) applyPlanOrder(ids);
+    }
+
+    function importJson(file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const parsed = normalizeTripData(JSON.parse(reader.result));
+          parsed.tripId = uid();
+          Object.assign(state, parsed);
+          syncFieldsFromState();
+          renderAll(true);
+          toast('JSONを読み込みました');
+        } catch (e) {
+          toast('JSONの読み込みに失敗しました');
+        }
+      };
+      reader.readAsText(file, 'utf-8');
+    }
+
+    function showShioriOnly() {
+      renderAll(true);
+      document.body.classList.add('shiori-only');
+      document.querySelector('.preview')?.scrollIntoView({ block: 'start' });
+    }
+
+    function backToEdit() {
+      document.body.classList.remove('shiori-only');
+      document.querySelector('.panel')?.scrollIntoView({ block: 'start' });
+    }
+
+
+    function focusTripList() {
+      renderSavedTripList();
+      document.querySelector('.trip-sidebar')?.scrollIntoView({ block: 'start' });
+    }
+
+    function bindEvents() {
+      $('newTripBtn').addEventListener('click', newTrip);
+      $('saveTripNowBtn').addEventListener('click', saveTripNow);
+      $('loadSampleFromListBtn').addEventListener('click', loadSample);
+      $('importFromListBtn').addEventListener('click', () => $('importFile').click());
+      $('savedTripList').addEventListener('click', (e) => {
+        const loadId = e.target.getAttribute('data-load-trip');
+        const deleteId = e.target.getAttribute('data-delete-trip');
+        if (loadId) loadTripById(loadId);
+        if (deleteId) deleteTripById(deleteId);
+      });
+      fields.forEach(id => $(id).addEventListener('input', () => renderAll(true)));
+      $('startDate').addEventListener('change', () => {
+        if (!$('endDate').value) $('endDate').value = $('startDate').value;
+        if (!$('planDate').value) $('planDate').value = $('startDate').value;
+        renderAll(true);
+      });
+      $('addPlanBtn').addEventListener('click', addPlan);
+      $('clearPlanFormBtn').addEventListener('click', () => clearPlanForm(true));
+      $('planList').addEventListener('click', (e) => {
+        const editId = e.target.getAttribute('data-edit-plan');
+        const deleteId = e.target.getAttribute('data-delete-plan');
+        if (editId) editPlan(editId);
+        if (deleteId) deletePlan(deleteId);
+      });
+
+      let draggingPlanId = null;
+      $('planList').addEventListener('dragstart', (e) => {
+        const handle = e.target.closest('[data-plan-drag-handle]');
+        if (!handle) return;
+        const card = handle.closest('[data-plan-card]');
+        if (!card) return;
+        draggingPlanId = card.getAttribute('data-plan-card');
+        card.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', draggingPlanId);
+      });
+      $('planList').addEventListener('dragover', (e) => {
+        if (!draggingPlanId) return;
+        e.preventDefault();
+        const dragging = $('planList').querySelector('.plan-card.dragging');
+        if (!dragging) return;
+        const after = getDragAfterElement($('planList'), e.clientY);
+        if (after == null) {
+          $('planList').appendChild(dragging);
+        } else {
+          $('planList').insertBefore(dragging, after);
+        }
+      });
+      $('planList').addEventListener('drop', (e) => {
+        if (!draggingPlanId) return;
+        e.preventDefault();
+        persistCurrentPlanCardOrder();
+        draggingPlanId = null;
+        renderAll(true);
+        toast('予定の順番を変更しました');
+      });
+      $('planList').addEventListener('dragend', () => {
+        const dragging = $('planList').querySelector('.plan-card.dragging');
+        if (dragging) dragging.classList.remove('dragging');
+        if (!draggingPlanId) return;
+        persistCurrentPlanCardOrder();
+        draggingPlanId = null;
+        renderAll(true);
+      });
+      $('addPackingBtn').addEventListener('click', () => addPackingItem());
+      $('packingInput').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); addPackingItem(); }
+      });
+      $('addPackingTemplateBtn').addEventListener('click', addPackingTemplate);
+      document.body.addEventListener('change', (e) => {
+        const id = e.target.getAttribute('data-toggle-packing');
+        if (id) togglePacking(id, e.target.checked);
+      });
+      $('packingEditor').addEventListener('click', (e) => {
+        const id = e.target.getAttribute('data-delete-packing');
+        if (id) deletePacking(id);
+      });
+      $('copyMarkdownBtn').addEventListener('click', async () => {
+        renderMarkdown();
+        try {
+          await navigator.clipboard.writeText($('markdownOutput').value);
+          toast('Markdownをコピーしました');
+        } catch (_) {
+          $('markdownOutput').select();
+          document.execCommand('copy');
+          toast('Markdownをコピーしました');
+        }
+      });
+      $('downloadMarkdownBtn').addEventListener('click', () => {
+        renderMarkdown();
+        const name = (state.tripTitle || 'travel-shiori').replace(/[\\/:*?"<>|\s]+/g, '_');
+        download(`${name}.md`, $('markdownOutput').value, 'text/markdown');
+      });
+      $('exportJsonBtn').addEventListener('click', exportJson);
+      $('importBtn').addEventListener('click', () => $('importFile').click());
+      $('importFile').addEventListener('change', (e) => {
+        const file = e.target.files?.[0];
+        if (file) importJson(file);
+        e.target.value = '';
+      });
+      $('chooseCoverImageBtn').addEventListener('click', () => $('coverImageFile').click());
+      $('coverImageFile').addEventListener('change', (e) => {
+        const file = e.target.files?.[0];
+        if (file) importCoverImage(file);
+        e.target.value = '';
+      });
+      $('clearCoverImageBtn').addEventListener('click', clearCoverImage);
+      $('loadSampleBtn').addEventListener('click', loadSample);
+      $('printBtn').addEventListener('click', () => window.print());
+      $('printFromViewBtn').addEventListener('click', () => window.print());
+      $('showShioriBtn').addEventListener('click', showShioriOnly);
+      $('showShioriTopBtn').addEventListener('click', showShioriOnly);
+      $('showShioriBottomBtn').addEventListener('click', showShioriOnly);
+      $('backToEditBtn').addEventListener('click', backToEdit);
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && document.body.classList.contains('shiori-only')) backToEdit();
+      });
+      $('resetBtn').addEventListener('click', () => {
+        if (!confirm('入力した旅行データをすべて削除します。よろしいですか？')) return;
+        localStorage.removeItem(STORAGE_KEY);
+        Object.assign(state, emptyTripState());
+        syncFieldsFromState();
+        clearPlanForm(false);
+        renderAll(false);
+        toast('削除しました');
+      });
+    }
+
+    load();
+    syncFieldsFromState();
+    bindEvents();
+    if (hasTripContent() && !readSavedTrips().some(item => item.id === state.tripId)) save();
+    renderAll(false);
+    renderSavedTripList();
+  </script>
+</body>
+</html>
