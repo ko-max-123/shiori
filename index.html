@@ -3,7 +3,12 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>旅しおりメーカー</title>
+  <meta name="theme-color" content="#2f6f73" />
+  <meta name="description" content="旅行予定を入力して、印刷・共有しやすい旅のしおりを作れる静的HTMLアプリです。" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" href="./icons/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+  <title>旅しおりメーカー MVP</title>
   <style>
     :root {
       --bg: #f6f4ef;
@@ -844,7 +849,7 @@
 
   <header class="app-header">
     <div>
-      <h1 class="app-title">旅しおりメーカー</h1>
+      <h1 class="app-title">旅しおりメーカー MVP</h1>
       <p class="app-subtitle">旅行予定を入力すると、印刷・共有しやすい「しおり」を自動で整えます。APIなし、データはブラウザ内保存です。</p>
     </div>
     <div class="header-actions">
@@ -1958,6 +1963,14 @@
     if (hasTripContent() && !readSavedTrips().some(item => item.id === state.tripId)) save();
     renderAll(false);
     renderSavedTripList();
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch((error) => {
+          console.warn('Service Workerを登録できませんでした', error);
+        });
+      });
+    }
   </script>
 </body>
 </html>

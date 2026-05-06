@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">ÅWJŠáü«ü</title>
+  <desc id="desc">ÅLWJŠ’hYÎüÈhÔón¢¤³ó</desc>
+  <rect width="512" height="512" rx="112" fill="#2f6f73"/>
+  <circle cx="394" cy="114" r="76" fill="#e88d55" opacity=".95"/>
+  <path fill="#fffdf8" d="M132 94h224c24 0 44 20 44 44v286c0 12-10 22-22 22H132c-24 0-44-20-44-44V138c0-24 20-44 44-44Z"/>
+  <path fill="#e5dfd3" d="M132 94h34v352h-34c-24 0-44-20-44-44V138c0-24 20-44 44-44Z"/>
+  <path fill="#2f6f73" d="M210 170h132v22H210zm0 58h132v22H210zm0 58h92v22h-92z"/>
+  <path fill="#e88d55" d="M288 314c34 0 62 28 62 62 0 46-62 92-62 92s-62-46-62-92c0-34 28-62 62-62Z"/>
+  <circle cx="288" cy="376" r="22" fill="#fffdf8"/>
+</svg>
