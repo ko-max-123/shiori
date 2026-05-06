@@ -1,4 +1,4 @@
-const CACHE_NAME = 'travel-shiori-maker-mvp-v1';
+const CACHE_NAME = 'travel-shiori-maker-mvp-v2';
 const APP_SHELL = [
   './',
   './index.html',
